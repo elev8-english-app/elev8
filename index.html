@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Elev8 English — Grade 8 Learning Hub</title>
@@ -248,14 +249,14 @@ body{background:
     <div class="beach-actions">
       <button id="dictBtn" class="top-chip">📘 My Dictionary</button>
       <button id="progressBtn" class="top-chip">📊 Progress</button>
-      <div class="learner-pill" id="student-profile-badge" onclick="promptStudentLogin()" style="cursor:pointer;" title="Bấm vào để đổi tài khoản">
-  <div class="learner-avatar">👧</div>
-  <div class="learner-copy">
-    <b id="display-student-name">Đăng nhập</b>
-    <span id="display-student-class">Nhập Tên & Lớp</span>
-  </div>
-</div>
-      <button id="exitBtn" class="btn btn-soft hidden">← Back to Unit</button>
+        <div class="learner-pill" id="student-profile-badge" onclick="checkAuthAndPrompt()" style="cursor:pointer;" title="Bấm vào để xem thông tin hoặc đăng xuất">
+          <div class="learner-avatar" id="display-student-avatar">👧</div>
+          <div class="learner-copy">
+            <b id="display-student-name">Đăng nhập</b>
+            <span id="display-student-class">Google & Lớp học</span>
+          </div>
+        </div>
+        <button id="exitBtn" class="btn btn-soft hidden">← Back to Unit</button>
     </div>
   </div>
 </header>
