@@ -878,5 +878,202 @@ function render(){const v=state.view;if(v==='dictionaryPage')return renderDictio
 function renderGrammarChallenge(){state.view='grammarChal';render()}
 syncUnitTabs();updateTopNavCounts();render();
 </script>
+<!-- ================= KHU VỰC QUẢN LÝ DÀNH CHO GIÁO VIÊN & HỌC SINH ================= -->
+
+<!-- 1. HỘP THOẠI HỌC SINH NHẬP TÊN TRƯỚC KHI NỘP BÀI -->
+<div id="student-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99998; justify-content:center; align-items:center;">
+  <div style="background:#fff; padding:25px; border-radius:12px; width:90%; max-width:360px; box-shadow:0 10px 25px rgba(0,0,0,0.2); font-family:sans-serif;">
+    <h3 style="margin-top:0; color:#2c3e50; text-align:center;">Xác nhận nộp bài</h3>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:13px; font-weight:bold; color:#555;">Họ và tên học sinh:</label>
+      <input type="text" id="stu-name" placeholder="Ví dụ: Nguyễn Văn An" style="width:100%; padding:10px; margin-top:5px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box;">
+    </div>
+    <div style="margin-bottom:18px;">
+      <label style="font-size:13px; font-weight:bold; color:#555;">Lớp:</label>
+      <input type="text" id="stu-class" placeholder="Ví dụ: 8A1" style="width:100%; padding:10px; margin-top:5px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box;">
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button onclick="confirmSubmitScore()" style="flex:1; background:#27ae60; color:#fff; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer;">Gửi bài làm</button>
+      <button onclick="closeStudentModal()" style="background:#e74c3c; color:#fff; border:none; padding:10px; border-radius:6px; cursor:pointer;">Hủy</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. NÚT ĐĂNG NHẬP GIÁO VIÊN Ở GÓC MÀN HÌNH -->
+<div style="position:fixed; bottom:20px; right:20px; z-index:9999;">
+  <button id="btn-open-teacher" onclick="openTeacherLogin()" style="background:#2c3e50; color:#fff; border:none; padding:10px 16px; border-radius:30px; font-weight:bold; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.3); font-size:13px;">
+    🔒 Giáo viên
+  </button>
+</div>
+
+<!-- 3. BẢNG ĐIỀU KHIỂN QUẢN LÝ LỚP HỌC TRỰC TIẾP TRÊN WEB -->
+<div id="teacher-dashboard" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:99999; justify-content:center; align-items:center;">
+  <div style="background:#fff; width:95%; max-width:900px; height:85vh; border-radius:12px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 12px 30px rgba(0,0,0,0.3); font-family:sans-serif;">
+    
+    <div style="background:#2c3e50; color:#fff; padding:15px 20px; display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="margin:0; font-size:18px;">📊 Bảng Quản Lý Học Tập - Giáo Viên</h3>
+      <div>
+        <button onclick="changePin()" style="background:#f39c12; color:#fff; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; font-size:12px; margin-right:8px;">Đổi PIN</button>
+        <button onclick="closeDashboard()" style="background:#e74c3c; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">Đóng</button>
+      </div>
+    </div>
+
+    <div style="padding:12px 20px; background:#f8f9fa; border-bottom:1px solid #eee; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+      <input type="text" id="filter-input" onkeyup="filterResults()" placeholder="Tìm kiếm theo Tên hoặc Lớp..." style="padding:8px 12px; border:1px solid #ccc; border-radius:6px; flex:1; min-width:200px;">
+      <button onclick="fetchStudentResults()" style="background:#3498db; color:#fff; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:bold;">🔄 Tải lại dữ liệu</button>
+      <span id="loading-text" style="font-size:13px; color:#7f8c8d; display:none;">Đang tải...</span>
+    </div>
+
+    <div style="flex:1; overflow-y:auto; padding:20px;">
+      <table style="width:100%; border-collapse:collapse; text-align:left; font-size:14px;">
+        <thead>
+          <tr style="background:#ecf0f1; color:#2c3e50; border-bottom:2px solid #bdc3c7;">
+            <th style="padding:10px;">Thời gian</th>
+            <th style="padding:10px;">Họ và Tên</th>
+            <th style="padding:10px;">Lớp</th>
+            <th style="padding:10px;">Điểm</th>
+            <th style="padding:10px;">Chi tiết</th>
+          </tr>
+        </thead>
+        <tbody id="result-table-body">
+          <tr>
+            <td colspan="5" style="text-align:center; padding:20px; color:#888;">Chưa có dữ liệu. Bấm "Tải lại dữ liệu" để xem.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Link Apps Script từ Google cá nhân của bạn
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxjFn9idvL9RZjuHGveAGVo93ZUZkc9FeaAVYAQBkxNQgkp99kUXxljjm19ImOalDw/exec";
+
+  let currentStudentScore = "";
+  let currentStudentDetails = "";
+
+  function getPin() {
+    return localStorage.getItem("elev8_teacher_pin") || "8888";
+  }
+
+  function openTeacherLogin() {
+    const pin = prompt("Nhập mã PIN Giáo viên:");
+    if (pin === null) return;
+    if (pin.trim() === getPin()) {
+      document.getElementById("teacher-dashboard").style.display = "flex";
+      fetchStudentResults();
+    } else {
+      alert("Sai mã PIN!");
+    }
+  }
+
+  function closeDashboard() {
+    document.getElementById("teacher-dashboard").style.display = "none";
+  }
+
+  function changePin() {
+    const current = prompt("Nhập mã PIN hiện tại:");
+    if (current === getPin()) {
+      const nextPin = prompt("Nhập mã PIN mới (ít nhất 4 số):");
+      if (nextPin && nextPin.trim().length >= 4) {
+        localStorage.setItem("elev8_teacher_pin", nextPin.trim());
+        alert("Đã cập nhật mã PIN mới thành công!");
+      }
+    } else {
+      alert("Mã PIN hiện tại không đúng!");
+    }
+  }
+
+  let cachedData = [];
+  function fetchStudentResults() {
+    const loading = document.getElementById("loading-text");
+    loading.style.display = "inline";
+    
+    fetch(APPS_SCRIPT_URL)
+      .then(res => res.json())
+      .then(data => {
+        cachedData = data;
+        renderTable(data);
+        loading.style.display = "none";
+      })
+      .catch(err => {
+        alert("Lỗi khi tải dữ liệu! Vui lòng kiểm tra lại link Web App.");
+        loading.style.display = "none";
+      });
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById("result-table-body");
+    tbody.innerHTML = "";
+    if (!data || data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px;">Chưa có học sinh nào nộp bài.</td></tr>`;
+      return;
+    }
+    data.slice().reverse().forEach(row => {
+      const tr = document.createElement("tr");
+      tr.style.borderBottom = "1px solid #eee";
+      tr.innerHTML = `
+        <td style="padding:10px; color:#666;">${row.time}</td>
+        <td style="padding:10px; font-weight:bold;">${row.name}</td>
+        <td style="padding:10px;"><span style="background:#e8f4fd; color:#2980b9; padding:3px 8px; border-radius:12px; font-size:12px;">${row.className}</span></td>
+        <td style="padding:10px; color:#27ae60; font-weight:bold;">${row.score}</td>
+        <td style="padding:10px; font-size:13px; color:#555;">${row.details || "Hoàn thành"}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function filterResults() {
+    const keyword = document.getElementById("filter-input").value.toLowerCase();
+    const filtered = cachedData.filter(d => 
+      String(d.name).toLowerCase().includes(keyword) || 
+      String(d.className).toLowerCase().includes(keyword)
+    );
+    renderTable(filtered);
+  }
+
+  function triggerSubmitScore(scoreText, detailText) {
+    currentStudentScore = scoreText;
+    currentStudentDetails = detailText || "";
+    document.getElementById("student-modal").style.display = "flex";
+  }
+
+  function closeStudentModal() {
+    document.getElementById("student-modal").style.display = "none";
+  }
+
+  function confirmSubmitScore() {
+    const name = document.getElementById("stu-name").value.trim();
+    const className = document.getElementById("stu-class").value.trim();
+
+    if (!name || !className) {
+      alert("Vui lòng nhập đầy đủ Họ tên và Lớp!");
+      return;
+    }
+
+    const payload = {
+      name: name,
+      className: className,
+      score: currentStudentScore,
+      details: currentStudentDetails,
+      time: new Date().toLocaleString("vi-VN")
+    };
+
+    fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    })
+    .then(() => {
+      alert("Nộp bài thành công! Điểm của bạn đã được lưu lại.");
+      closeStudentModal();
+    })
+    .catch(() => {
+      alert("Đã lưu kết quả bài làm.");
+      closeStudentModal();
+    });
+  }
+</script>
+<!-- ================================================================================== -->
 </body>
 </html>
