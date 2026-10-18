@@ -248,7 +248,13 @@ body{background:
     <div class="beach-actions">
       <button id="dictBtn" class="top-chip">📘 My Dictionary</button>
       <button id="progressBtn" class="top-chip">📊 Progress</button>
-      <div class="learner-pill"><div class="learner-avatar">👧</div><div class="learner-copy"><b>Hi, Learner!</b><span>Keep going!</span></div></div>
+      <div class="learner-pill" id="student-profile-badge" onclick="promptStudentLogin()" style="cursor:pointer;" title="Bấm vào để đổi tài khoản">
+  <div class="learner-avatar">👧</div>
+  <div class="learner-copy">
+    <b id="display-student-name">Đăng nhập</b>
+    <span id="display-student-class">Nhập Tên & Lớp</span>
+  </div>
+</div>
       <button id="exitBtn" class="btn btn-soft hidden">← Back to Unit</button>
     </div>
   </div>
@@ -1163,5 +1169,110 @@ syncUnitTabs();updateTopNavCounts();render();
   }
 </script>
 <!-- ===================================================================== -->
+<!-- MODAL ĐĂNG NHẬP DÀNH CHO HỌC SINH -->
+<div id="login-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.7); z-index:999999; justify-content:center; align-items:center; backdrop-filter:blur(5px); font-family:sans-serif;">
+  <div style="background:#ffffff; padding:28px; border-radius:20px; width:90%; max-width:380px; box-shadow:0 20px 40px rgba(0,0,0,0.25); text-align:center;">
+    <div style="font-size:48px; margin-bottom:10px;">👋</div>
+    <h3 style="margin:0 0 8px; color:#1e3a8a; font-size:22px;">Chào mừng bạn!</h3>
+    <p style="margin:0 0 20px; color:#64748b; font-size:14px;">Vui lòng nhập Họ tên và Lớp để bắt đầu học tập và lưu kết quả.</p>
+    
+    <div style="text-align:left; margin-bottom:14px;">
+      <label style="font-size:13px; font-weight:bold; color:#475569;">Họ và Tên học sinh:</label>
+      <input type="text" id="login-name" placeholder="Ví dụ: Nguyễn Văn An" style="width:100%; padding:11px 14px; margin-top:6px; border:1.5px solid #cbd5e1; border-radius:10px; box-sizing:border-box; font-size:14px;">
+    </div>
+    
+    <div style="text-align:left; margin-bottom:22px;">
+      <label style="font-size:13px; font-weight:bold; color:#475569;">Lớp học:</label>
+      <input type="text" id="login-class" placeholder="Ví dụ: 8A1" style="width:100%; padding:11px 14px; margin-top:6px; border:1.5px solid #cbd5e1; border-radius:10px; box-sizing:border-box; font-size:14px;">
+    </div>
+    
+    <button onclick="saveStudentLogin()" style="width:100%; background:#2563eb; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; font-size:15px; cursor:pointer;">Bắt đầu học ngay</button>
+  </div>
+</div>
+
+<script>
+  // Quản lý trạng thái học sinh
+  let currentStudent = {
+    name: localStorage.getItem("elev8_stu_name") || "",
+    className: localStorage.getItem("elev8_stu_class") || ""
+  };
+
+  // Cập nhật giao diện thanh điều hướng khi tải trang
+  function updateStudentHeader() {
+    const nameEl = document.getElementById("display-student-name");
+    const classEl = document.getElementById("display-student-class");
+    if (currentStudent.name && currentStudent.className) {
+      if (nameEl) nameEl.innerText = currentStudent.name;
+      if (classEl) classEl.innerText = "Lớp " + currentStudent.className;
+    } else {
+      if (nameEl) nameEl.innerText = "Đăng nhập";
+      if (classEl) classEl.innerText = "Bấm để nhập Tên/Lớp";
+    }
+  }
+
+  // Bật popup đăng nhập
+  function promptStudentLogin() {
+    document.getElementById("login-name").value = currentStudent.name;
+    document.getElementById("login-class").value = currentStudent.className;
+    document.getElementById("login-modal").style.display = "flex";
+  }
+
+  // Lưu thông tin học sinh vào bộ nhớ trình duyệt
+  function saveStudentLogin() {
+    const name = document.getElementById("login-name").value.trim();
+    const className = document.getElementById("login-class").value.trim();
+
+    if (!name || !className) {
+      alert("Vui lòng điền đầy đủ cả Họ tên và Lớp học!");
+      return;
+    }
+
+    currentStudent.name = name;
+    currentStudent.className = className;
+    localStorage.setItem("elev8_stu_name", name);
+    localStorage.setItem("elev8_stu_class", className);
+
+    updateStudentHeader();
+    document.getElementById("login-modal").style.display = "none";
+  }
+
+  // Tự động yêu cầu đăng nhập nếu học sinh vào web lần đầu
+  window.addEventListener("DOMContentLoaded", () => {
+    updateStudentHeader();
+    if (!currentStudent.name || !currentStudent.className) {
+      setTimeout(() => {
+        promptStudentLogin();
+      }, 500);
+    }
+  });
+
+  // Tự động gửi kết quả điểm kèm theo Tên và Lớp học sinh đã đăng nhập
+  function autoSubmitStudentScore(scoreText, detailText, unitName) {
+    if (!currentStudent.name || !currentStudent.className) {
+      promptStudentLogin();
+      return;
+    }
+
+    const payload = {
+      name: currentStudent.name,
+      className: currentStudent.className,
+      unit: unitName || (state.unit === 2 ? "Unit 2" : "Unit 1"),
+      score: scoreText,
+      details: detailText || "Hoàn thành bài tập",
+      time: new Date().toLocaleString("vi-VN")
+    };
+
+    fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    })
+    .then(() => {
+      alert(`Đã lưu điểm bài làm của ${currentStudent.name} (${currentStudent.className}) thành công!`);
+    })
+    .catch(() => {
+      alert("Đã hoàn thành bài làm.");
+    });
+  }
+</script>
 </body>
 </html>
