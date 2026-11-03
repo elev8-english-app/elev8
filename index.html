@@ -816,57 +816,53 @@ function writingScore(raw) {
     let grammarScore = 0;
     let checksList = [];
 
-    // 1. Task Response (Word Count: 80 - 100 words) -> Max 2.5 pts
     if (wc >= 80 && wc <= 110) {
       taskScore = 2.5;
-      checksList.push(["Task Response: Good length (" + wc + " words)", true]);
+      checksList.push(["Task Response (2.5/2.5): Good length (" + wc + " words). Meets requirement.", true]);
     } else if (wc >= 65 && wc < 80) {
       taskScore = 1.8;
-      checksList.push(["Task Response: Slightly short (" + wc + "/80 words)", false]);
+      checksList.push(["Task Response (1.8/2.5): Slightly short (" + wc + "/80 words). Add details.", false]);
     } else if (wc > 110) {
       taskScore = 2.0;
-      checksList.push(["Task Response: Overlength (" + wc + " words)", false]);
+      checksList.push(["Task Response (2.0/2.5): Overlength (" + wc + " words). Keep it under 100.", false]);
     } else {
       taskScore = 1.0;
-      checksList.push(["Task Response: Underlength (" + wc + " words)", false]);
+      checksList.push(["Task Response (1.0/2.5): Underlength (" + wc + " words). Min is 80 words.", false]);
     }
 
-    // 2. Organization & Coherence (Linking words) -> Max 2.5 pts
     const connectors = ['first', 'second', 'besides', 'moreover', 'in addition', 'finally', 'therefore', 'however', 'also', 'because'];
     const foundConnectors = connectors.filter(c => lower.includes(c));
     if (foundConnectors.length >= 2) {
       orgScore = 2.5;
-      checksList.push(["Coherence: Good linking words (" + foundConnectors.join(', ') + ")", true]);
+      checksList.push(["Coherence (2.5/2.5): Good linking words (" + foundConnectors.join(', ') + ")", true]);
     } else if (foundConnectors.length === 1) {
       orgScore = 1.8;
-      checksList.push(["Coherence: Use more connectors (e.g., Besides, Finally)", false]);
+      checksList.push(["Coherence (1.8/2.5): Try adding more connectors (e.g. Besides, Finally)", false]);
     } else {
       orgScore = 1.2;
-      checksList.push(["Coherence: Missing transition words", false]);
+      checksList.push(["Coherence (1.2/2.5): Missing transition words between sentences", false]);
     }
 
-    // 3. Target Vocabulary -> Max 2.5 pts
-    const targetVocab = ['diy', 'puzzle', 'craft', 'surf', 'hang out', 'origami', 'leisure', 'message', 'sport', 'knit', 'gardening', 'film', 'movie', 'novel', 'music', 'relax'];
+    const targetVocab = ['diy', 'puzzle', 'craft', 'surf', 'hang out', 'origami', 'leisure', 'message', 'sport', 'knit', 'gardening', 'film', 'movie', 'novel', 'music', 'relax', 'cycle', 'cycling', 'paddy', 'cattle', 'herd', 'harvest', 'orchard', 'plough', 'vast', 'peaceful', 'hospitable'];
     const matchedVocab = targetVocab.filter(v => lower.includes(v));
     if (matchedVocab.length >= 3) {
       vocabScore = 2.5;
-      checksList.push(["Vocabulary: Great use of Unit vocabulary (" + matchedVocab.length + " target words)", true]);
+      checksList.push(["Vocabulary (2.5/2.5): Great use of Unit vocabulary (" + matchedVocab.length + " target words)", true]);
     } else if (matchedVocab.length >= 1) {
       vocabScore = 1.8;
-      checksList.push(["Vocabulary: Try using more Unit words", false]);
+      checksList.push(["Vocabulary (1.8/2.5): Try using more Unit vocabulary words", false]);
     } else {
       vocabScore = 1.0;
-      checksList.push(["Vocabulary: Few Unit vocabulary words detected", false]);
+      checksList.push(["Vocabulary (1.0/2.5): Few or no Unit vocabulary words detected", false]);
     }
 
-    // 4. Target Grammar (Verbs of liking + V-ing) -> Max 2.5 pts
     const grammarPattern = /(enjoy|love|like|fancy|prefer|hate|dislike|into|fond of|keen on)\s+(\w+ing|to\s+\w+)/i;
     if (grammarPattern.test(raw)) {
       grammarScore = 2.5;
-      checksList.push(["Grammar: Correct use of verbs of liking/disliking", true]);
+      checksList.push(["Grammar (2.5/2.5): Correct use of verbs of liking/disliking structure", true]);
     } else {
       grammarScore = 1.5;
-      checksList.push(["Grammar: Remember to use verbs of liking + V-ing", false]);
+      checksList.push(["Grammar (1.5/2.5): Remember to use verbs of liking/disliking + V-ing", false]);
     }
 
     const total10 = Number((taskScore + orgScore + vocabScore + grammarScore).toFixed(1));
@@ -877,59 +873,142 @@ function writingScore(raw) {
       scaledScore: total10,
       wc: wc,
       fb: { corrections: [], cleaned: raw },
-      metrics: [
-        ['Task Response', taskScore * 10, 25],
-        ['Coherence', orgScore * 10, 25],
-        ['Vocabulary', vocabScore * 10, 25],
-        ['Grammar', grammarScore * 10, 25]
-      ],
       checks: checksList
     };
   }
-function draw(){
-  if(step===1){
-    app.innerHTML=panel('Writing — Step 1: Brainstorm','Collect ideas before you write.',`<div class="card"><label>Activity<input id="wa" class="text-input" placeholder="e.g. cycling"></label><br><br><label>Who with?<input id="ww" class="text-input" placeholder="e.g. my cousin"></label><br><br><label>When?<input id="wn" class="text-input" placeholder="e.g. Saturday afternoon"></label><br><br><label>Why do you enjoy it?<input id="wy" class="text-input" placeholder="e.g. it helps me relax"></label><button id="wNext1" class="btn btn-primary" style="width:100%;margin-top:18px">Next: Organise →</button></div>`);
-    document.getElementById('wNext1').onclick=()=>{notes={activity:document.getElementById('wa').value,who:document.getElementById('ww').value,when:document.getElementById('wn').value,why:document.getElementById('wy').value};step=2;draw()};
-  }else if(step===2){
-    app.innerHTML=panel('Writing — Step 2: Organise','Plan the structure of an informal email.',`<div class="card"><div class="two-col"><div class="rule"><h3>Greeting</h3><p>Hi / Dear + name,</p></div><div class="rule green"><h3>Opening</h3><p>Ask how your friend is and introduce your topic.</p></div><div class="rule"><h3>Main ideas</h3><p>Activity • who with • when • why you enjoy it</p></div><div class="rule green"><h3>Closing</h3><p>Write back soon / Best wishes / See you soon</p></div></div><button id="wNext2" class="btn btn-primary" style="width:100%;margin-top:18px">Next: Write →</button></div>`);
-    document.getElementById('wNext2').onclick=()=>{step=3;draw()};
-  }else{
-    app.innerHTML=panel('Writing — Step 3: Draft','Write 80–100 words, then use the checker to score the draft and correct common Unit 1 grammar errors.',`<div class="email-layout"><div class="card"><textarea id="emailText" rows="18" placeholder="Hi Mai,\n\nHow are you? In my free time, I really enjoy…">${esc(text)}</textarea><div id="wc" style="text-align:right;font-weight:900;margin-top:10px"></div><div class="controls" style="margin-top:14px"><button id="checkWriting" class="btn btn-primary">Check & score my writing</button></div><div id="writingFeedback" style="margin-top:16px"></div></div><aside class="card"><h3>Your notes</h3><p><b>Activity:</b> ${esc(notes.activity)||'—'}</p><p><b>With:</b> ${esc(notes.who)||'—'}</p><p><b>When:</b> ${esc(notes.when)||'—'}</p><p><b>Why:</b> ${esc(notes.why)||'-'}</p><div id="scoreBox"></div><h3>Live checklist</h3><div id="checks" class="checklist"></div><button id="submitWriting" class="btn btn-green" style="width:100%;margin-top:14px" disabled>Save & finish</button></aside></div><p class="audio-help"><b>Note:</b> this is a rule-based learning checker. It can flag common Unit 1 patterns, but it cannot replace teacher feedback for every possible English sentence.</p>`);
-    const ta=document.getElementById('emailText'),fbHost=document.getElementById('writingFeedback');
-    ta.oninput=()=>{text=ta.value;checked=false;update();fbHost.innerHTML=''};
-    function update(){
-      const r=writingScore(text);document.getElementById('wc').innerHTML=`<span style="color:${r.wc>100?'#b06f45':r.wc>=80?'#3f8178':'#66859b'}">Word count: ${r.wc} / 80–100</span>${r.wc>100?'<br><small>Try to keep your email between 80 and 100 words.</small>':''}`;
-      document.getElementById('checks').innerHTML=r.checks.map(([lab,ok])=>`<div class="check ${ok?'pass':''}"><i>✓</i><span>${esc(lab)}</span></div>`).join('');
-      document.getElementById('checkWriting').disabled=r.wc<15;
-      const essential=r.checks.find(x=>x[0]==='80–100 words')[1]&&r.checks.find(x=>x[0]==='Greeting')[1]&&r.checks.find(x=>x[0]==='Likes/dislikes expression')[1]&&r.checks.find(x=>x[0]==='Closing')[1];
-      document.getElementById('submitWriting').disabled=!(essential&&checked);
-    }
-    document.getElementById('checkWriting').onclick=()=>{
-  text=ta.value;
-  const r=writingScore(text);
-  checked=true;
-  const score10 = (r.score / 10).toFixed(1);
 
-  fbHost.innerHTML=`
-    <div class="card" style="margin-top:16px; padding:18px; border-radius:18px; background:linear-gradient(135deg,#f0f9ff,#e0f2fe); border:2px solid #7dd3fc; display:flex; align-items:center; gap:20px;">
-      <div style="width:75px; height:75px; border-radius:50%; background:#0284c7; color:#fff; display:grid; place-items:center; font-size:24px; font-weight:900; box-shadow:0 4px 12px rgba(2,132,199,0.35); flex-shrink:0;">
-        ${score10}
-      </div>
-      <div>
-        <div style="font-size:18px; font-weight:800; color:#0369a1; margin-bottom:4px;">Writing Score: ${score10} / 10</div>
-        <p style="margin:0; font-size:14px; font-weight:600; color:${score10>=8?'#059669':score10>=5?'#d97706':'#e11d48'};">
-          ${score10>=8?'🎉 Excellent work! Very well written.':score10>=5?'👍 Good effort! Review the checklist on the right to improve.':'⚠️ Keep practicing! Make sure to follow the checklist.'}
-        </p>
-      </div>
-    </div>
-  `;
-  update();
-};
-    document.getElementById('submitWriting').onclick=()=>markDone('writing');
+  function draw(){
+    if(step==1){
+      app.innerHTML=panel('Guided Writing: Step 1',
+        'Brainstorm your paragraph before writing.',
+        `<div class="two-col">
+          <div class="card">
+            <h3>Notes</h3>
+            <label><b>Activity:</b><input class="text-input" id="nAct" value="${esc(notes.activity)}" placeholder="e.g. playing badminton"></label>
+            <label style="margin-top:10px;display:block"><b>With whom:</b><input class="text-input" id="nWho" value="${esc(notes.who)}" placeholder="e.g. my best friend"></label>
+            <label style="margin-top:10px;display:block"><b>When / how often:</b><input class="text-input" id="nWhen" value="${esc(notes.when)}" placeholder="e.g. every Saturday afternoon"></label>
+            <label style="margin-top:10px;display:block"><b>Why you like it:</b><input class="text-input" id="nWhy" value="${esc(notes.why)}" placeholder="e.g. it helps me relax and stay fit"></label>
+            <button id="toStep2" class="btn btn-primary" style="margin-top:16px;width:100%">Continue to Draft →</button>
+          </div>
+          <div class="card">
+            <h3>Writing Prompt</h3>
+            <p>Write a paragraph (80–100 words) about your favourite leisure activity. Use the notes on the left to organize your ideas.</p>
+            <div class="rule" style="margin-top:12px">
+              <b>Requirements:</b>
+              <ul>
+                <li>Write between 80 and 100 words</li>
+                <li>Mention the activity, who with, when, and why</li>
+                <li>Use verbs of liking + gerund (e.g. <i>enjoy playing</i>)</li>
+                <li>Use linking words (e.g. <i>first, besides, finally</i>)</li>
+              </ul>
+            </div>
+          </div>
+        </div>`);
+      document.getElementById('toStep2').onclick=()=>{
+        notes.activity=document.getElementById('nAct').value.trim();
+        notes.who=document.getElementById('nWho').value.trim();
+        notes.when=document.getElementById('nWhen').value.trim();
+        notes.why=document.getElementById('nWhy').value.trim();
+        step=2;draw();
+      };
+      return;
+    }
+
+    app.innerHTML=panel('Guided Writing: Step 2',
+      'Write 80–100 words, then use the checker to score the draft.',
+      `<div class="email-layout">
+        <div>
+          <textarea id="emailText" rows="12" placeholder="Write your paragraph here...">${esc(text)}</textarea>
+          <div id="wc" style="text-align:right;font-weight:900;margin-top:10px"></div>
+          <div class="controls" style="margin-top:14px">
+            <button id="checkWriting" class="btn btn-primary">Check & score my writing</button>
+          </div>
+          <div id="writingFeedback" style="margin-top:16px"></div>
+        </div>
+        <aside class="card">
+          <h3>Your notes</h3>
+          <p><b>Activity:</b> ${esc(notes.activity)||'—'}</p>
+          <p><b>With:</b> ${esc(notes.who)||'—'}</p>
+          <p><b>When:</b> ${esc(notes.when)||'—'}</p>
+          <p><b>Why:</b> ${esc(notes.why)||'—'}</p>
+          <h3>Live checklist</h3>
+          <div id="checks" class="checklist"></div>
+          <button id="submitWriting" class="btn btn-green" style="width:100%;margin-top:14px" disabled>Save & finish</button>
+        </aside>
+      </div>`);
+
+    const ta=document.getElementById('emailText');
+    const fbHost=document.getElementById('writingFeedback');
+    
+    if (ta) {
+      ta.oninput=()=>{
+        text=ta.value;
+        checked=false;
+        update();
+        if(fbHost) fbHost.innerHTML='';
+      };
+    }
+
+    function update(){
+      const r=writingScore(text);
+      const wcEl = document.getElementById('wc');
+      if (wcEl) {
+        wcEl.innerHTML=`<span style="color:${r.wc>100?'#b06f45':r.wc>=80?'#3f8178':'#66859b'}">Word count: ${r.wc} / 80–100</span>${r.wc>100?'<br><small>Try to keep your text between 80 and 100 words.</small>':''}`;
+      }
+
+      const total10 = (r.score / 10).toFixed(1);
+      const scoreBadge = checked ? `
+        <div style="background:linear-gradient(135deg, #e0f2fe, #bae6fd); border:2px solid #38bdf8; border-radius:14px; padding:12px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 3px 10px rgba(56,189,248,0.2);">
+          <div>
+            <div style="font-weight:800; color:#0369a1; font-size:12px; letter-spacing:0.05em;">ESTIMATED SCORE</div>
+            <div style="font-size:11px; font-weight:700; color:${total10>=8?'#059669':total10>=5?'#0284c7':'#e11d48'};">
+              ${total10>=8?'🎉 Excellent Work!':total10>=5?'👍 Good Effort!':'⚠️ Needs Improvement'}
+            </div>
+          </div>
+          <div style="background:#0284c7; color:#fff; font-weight:900; font-size:18px; padding:6px 14px; border-radius:12px; box-shadow:0 2px 6px rgba(2,132,199,0.3);">
+            ${total10} <span style="font-size:12px; font-weight:700; opacity:0.85;">/ 10</span>
+          </div>
+        </div>
+      ` : '';
+
+      const checksEl = document.getElementById('checks');
+      if (checksEl) {
+        checksEl.innerHTML = scoreBadge + r.checks.map(([lab,ok])=>`<div class="check ${ok?'pass':''}"><i></i><span>${esc(lab)}</span></div>`).join('');
+      }
+
+      const checkBtn = document.getElementById('checkWriting');
+      if (checkBtn) {
+        checkBtn.disabled = r.wc < 15;
+      }
+
+      const submitBtn = document.getElementById('submitWriting');
+      if (submitBtn) {
+        submitBtn.disabled = !checked;
+      }
+    }
+
+    const checkBtn = document.getElementById('checkWriting');
+    if (checkBtn) {
+      checkBtn.onclick=()=>{
+        text = ta ? ta.value : '';
+        checked = true;
+        update();
+      };
+    }
+
+    const submitBtn = document.getElementById('submitWriting');
+    if (submitBtn) {
+      submitBtn.onclick=()=>{
+        markDone('writing');
+        toast('Writing saved successfully! 🎉');
+        renderDashboard();
+      };
+    }
+
     update();
   }
-}
-draw();
+
+  draw();
 }
 function renderFinal(){quizEngine(UNIT.final,{title:'Unit 1 Final Mission',showCats:true,onFinish:(score,total,cats,reset)=>{const perc=Math.round(score/total*100);const allCats=['Vocabulary','Likes & Dislikes','Grammar','Pronunciation','Communication','Skills'];const advice=[];allCats.forEach(cat=>{const c=cats[cat]||{correct:0,total:1},p=Math.round(c.correct/c.total*100);if(p<70){if(cat==='Grammar')advice.push('Review Grammar Lab before trying again.');else if(cat==='Pronunciation')advice.push('Return to Pronunciation Lab and practise /ʊ/ and /uː/.');else if(cat==='Vocabulary'||cat==='Likes & Dislikes')advice.push('Review Vocabulary Explorer and My Leisure Profile.');else advice.push(`Keep practising ${cat}.`)}});app.innerHTML=panel('UNIT 1 COMPLETE!','Your final assessment results are ready.',`<div class="card"><div style="text-align:center"><div style="font-size:68px">🏆</div><div class="score-big">${perc}%</div><p><b>Score: ${score}/${total}</b></p></div><div style="margin:22px 0">${allCats.map(cat=>{const c=cats[cat]||{correct:0,total:0},p=c.total?Math.round(c.correct/c.total*100):0;return `<div class="skill-row"><b>${cat}</b><div class="skill-track"><span style="width:${p}%"></span></div><strong>${p}%</strong></div>`}).join('')}</div>${advice.length?`<div class="feedback bad"><b>Review suggestions</b><ul>${advice.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:'<div class="feedback ok">Excellent balance across the Unit 1 skills.</div>'}<div class="controls"><button id="retryFinal" class="btn btn-soft">Retry Quiz</button><button id="weakFinal" class="btn btn-orange">Review Weak Areas</button><button id="doneFinal" class="btn btn-primary">Back to Unit</button></div></div>`);document.getElementById('retryFinal').onclick=reset;document.getElementById('weakFinal').onclick=()=>showHome();document.getElementById('doneFinal').onclick=()=>{state.progress.review=true;save();confetti();showHome()}}})}
 function u2HeroSVG(){return `<svg viewBox="0 0 560 390" role="img" aria-label="Countryside landscape"><defs><linearGradient id="u2g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#dff6e9"/><stop offset="1" stop-color="#dff0ff"/></linearGradient></defs><rect x="10" y="12" width="540" height="365" rx="34" fill="url(#u2g)"/><circle cx="458" cy="75" r="34" fill="#fde68a"/><path d="M35 278 C120 220 195 242 278 196 C356 153 426 180 528 133 L528 355 L35 355 Z" fill="#a7d8a0"/><path d="M35 302 C140 258 230 282 330 230 C416 184 478 220 528 198 L528 355 L35 355 Z" fill="#7fc78a"/><rect x="185" y="192" width="112" height="88" rx="8" fill="#fff8e7"/><path d="M170 199 L240 145 L312 199 Z" fill="#e58b69"/><rect x="225" y="230" width="28" height="50" fill="#9c6c4d"/><rect x="265" y="214" width="20" height="22" fill="#7cc0e6"/><path d="M70 305 C135 278 185 278 245 306" stroke="#d5b36b" stroke-width="18" fill="none" stroke-linecap="round"/><text x="114" y="292" font-size="58">🌾</text><text x="350" y="290" font-size="58">🐃</text><text x="410" y="246" font-size="54">🚜</text><text x="280" y="338" text-anchor="middle" font-size="18" font-weight="800" fill="#315d78">fields • farms • friendly villages</text></svg>`}
