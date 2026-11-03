@@ -814,75 +814,76 @@ function writingScore(raw) {
     let orgScore = 0;
     let vocabScore = 0;
     let grammarScore = 0;
-    let feedback = [];
+    let checksList = [];
 
     // 1. Task Response (Word Count: 80 - 100 words) -> Max 2.5 pts
     if (wc >= 80 && wc <= 110) {
       taskScore = 2.5;
-      feedback.push("✅ Task Response (2.5/2.5): Good length (" + wc + " words). Meets the requirement.");
+      checksList.push(["Task Response: Good length (" + wc + " words)", true]);
     } else if (wc >= 65 && wc < 80) {
       taskScore = 1.8;
-      feedback.push("⚠️ Task Response (1.8/2.5): Slightly short (" + wc + "/80 words). Try adding more details.");
+      checksList.push(["Task Response: Slightly short (" + wc + "/80 words)", false]);
     } else if (wc > 110) {
       taskScore = 2.0;
-      feedback.push("⚠️ Task Response (2.0/2.5): Overlength (" + wc + " words). Keep it between 80–100 words.");
+      checksList.push(["Task Response: Overlength (" + wc + " words)", false]);
     } else {
       taskScore = 1.0;
-      feedback.push("❌ Task Response (1.0/2.5): Underlength (" + wc + " words). Minimum required is 80 words.");
+      checksList.push(["Task Response: Underlength (" + wc + " words)", false]);
     }
 
     // 2. Organization & Coherence (Linking words) -> Max 2.5 pts
-    const connectors = ['first', 'second', 'besides', 'moreover', 'in addition', 'finally', 'therefore', 'however', 'also'];
+    const connectors = ['first', 'second', 'besides', 'moreover', 'in addition', 'finally', 'therefore', 'however', 'also', 'because'];
     const foundConnectors = connectors.filter(c => lower.includes(c));
     if (foundConnectors.length >= 2) {
       orgScore = 2.5;
-      feedback.push("✅ Coherence (2.5/2.5): Well-structured with linking words (" + foundConnectors.join(', ') + ").");
+      checksList.push(["Coherence: Good linking words (" + foundConnectors.join(', ') + ")", true]);
     } else if (foundConnectors.length === 1) {
       orgScore = 1.8;
-      feedback.push("⚠️ Coherence (1.8/2.5): Include more transition words (e.g., Besides, In addition, Finally).");
+      checksList.push(["Coherence: Use more connectors (e.g., Besides, Finally)", false]);
     } else {
       orgScore = 1.2;
-      feedback.push("❌ Coherence (1.2/2.5): Missing transition words between sentences.");
+      checksList.push(["Coherence: Missing transition words", false]);
     }
 
     // 3. Target Vocabulary -> Max 2.5 pts
-    const targetVocab = ['diy', 'puzzle', 'craft', 'surf', 'hang out', 'origami', 'leisure', 'message', 'sport', 'knit', 'gardening'];
+    const targetVocab = ['diy', 'puzzle', 'craft', 'surf', 'hang out', 'origami', 'leisure', 'message', 'sport', 'knit', 'gardening', 'film', 'movie', 'novel', 'music', 'relax'];
     const matchedVocab = targetVocab.filter(v => lower.includes(v));
     if (matchedVocab.length >= 3) {
       vocabScore = 2.5;
-      feedback.push("✅ Vocabulary (2.5/2.5): Great use of Unit vocabulary (" + matchedVocab.length + " target words used).");
+      checksList.push(["Vocabulary: Great use of Unit vocabulary (" + matchedVocab.length + " target words)", true]);
     } else if (matchedVocab.length >= 1) {
       vocabScore = 1.8;
-      feedback.push("⚠️ Vocabulary (1.8/2.5): Try using more target vocabulary from this Unit.");
+      checksList.push(["Vocabulary: Try using more Unit words", false]);
     } else {
       vocabScore = 1.0;
-      feedback.push("❌ Vocabulary (1.0/2.5): Few or no Unit vocabulary words detected.");
+      checksList.push(["Vocabulary: Few Unit vocabulary words detected", false]);
     }
 
     // 4. Target Grammar (Verbs of liking + V-ing) -> Max 2.5 pts
-    const grammarPattern = /(enjoy|love|like|fancy|prefer|hate|dislike|into|fond of|keen on)\s+\w+ing/i;
+    const grammarPattern = /(enjoy|love|like|fancy|prefer|hate|dislike|into|fond of|keen on)\s+(\w+ing|to\s+\w+)/i;
     if (grammarPattern.test(raw)) {
       grammarScore = 2.5;
-      feedback.push("✅ Grammar (2.5/2.5): Correct use of target grammar (verbs of liking + V-ing).");
+      checksList.push(["Grammar: Correct use of verbs of liking/disliking", true]);
     } else {
       grammarScore = 1.5;
-      feedback.push("⚠️ Grammar (1.5/2.5): Remember to use verbs of liking/disliking + V-ing (e.g., enjoy playing, fond of making).");
+      checksList.push(["Grammar: Remember to use verbs of liking + V-ing", false]);
     }
 
-    const totalScore = (taskScore + orgScore + vocabScore + grammarScore).toFixed(1);
+    const total10 = Number((taskScore + orgScore + vocabScore + grammarScore).toFixed(1));
+    const total100 = Math.round(total10 * 10);
 
     return {
-      score: totalScore,
+      score: total100,
+      scaledScore: total10,
       wc: wc,
-      fb: { corrections: [] },
+      fb: { corrections: [], cleaned: raw },
       metrics: [
-        ['Task Response', taskScore, 2.5],
-        ['Coherence', orgScore, 2.5],
-        ['Vocabulary', vocabScore, 2.5],
-        ['Grammar', grammarScore, 2.5]
+        ['Task Response', taskScore * 10, 25],
+        ['Coherence', orgScore * 10, 25],
+        ['Vocabulary', vocabScore * 10, 25],
+        ['Grammar', grammarScore * 10, 25]
       ],
-      checks: feedback.map(item => [item, true]),
-      feedback: feedback
+      checks: checksList
     };
   }
 function draw(){
