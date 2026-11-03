@@ -905,10 +905,26 @@ function draw(){
       document.getElementById('submitWriting').disabled=!(essential&&checked);
     }
     document.getElementById('checkWriting').onclick=()=>{
-      text=ta.value;const r=writingScore(text);checked=true;
-      fbHost.innerHTML=`<div class="card" style="box-shadow:none"><div class="speech-score"><div class="score-ring" style="--score:${r.score}%"><strong>${(r.score/10).toFixed(1)}/10</strong></div><div><h3 style="margin:0 0 6px">Writing feedback</h3><p style="color:#66859b;margin:0">Fix the highlighted patterns, then check again.</p></div></div>${metricCards(r.metrics)}<h4>Sentence corrections</h4>${correctionHTML(r.fb.corrections)}<details style="margin-top:16px"><summary style="font-weight:900;cursor:pointer">Show corrected draft for detected errors</summary><div class="corrected-draft" style="margin-top:10px">${esc(r.fb.corrected)}</div></details></div>`;
-      update();
-    };
+  text=ta.value;
+  const r=writingScore(text);
+  checked=true;
+  const score10 = (r.score / 10).toFixed(1);
+
+  fbHost.innerHTML=`
+    <div class="card" style="margin-top:16px; padding:18px; border-radius:18px; background:linear-gradient(135deg,#f0f9ff,#e0f2fe); border:2px solid #7dd3fc; display:flex; align-items:center; gap:20px;">
+      <div style="width:75px; height:75px; border-radius:50%; background:#0284c7; color:#fff; display:grid; place-items:center; font-size:24px; font-weight:900; box-shadow:0 4px 12px rgba(2,132,199,0.35); flex-shrink:0;">
+        ${score10}
+      </div>
+      <div>
+        <div style="font-size:18px; font-weight:800; color:#0369a1; margin-bottom:4px;">Writing Score: ${score10} / 10</div>
+        <p style="margin:0; font-size:14px; font-weight:600; color:${score10>=8?'#059669':score10>=5?'#d97706':'#e11d48'};">
+          ${score10>=8?'🎉 Excellent work! Very well written.':score10>=5?'👍 Good effort! Review the checklist on the right to improve.':'⚠️ Keep practicing! Make sure to follow the checklist.'}
+        </p>
+      </div>
+    </div>
+  `;
+  update();
+};
     document.getElementById('submitWriting').onclick=()=>markDone('writing');
     update();
   }
